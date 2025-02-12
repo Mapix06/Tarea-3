@@ -3,21 +3,30 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package vista;
-import java.util.LinkedList;
+
 import modelo.Punto2D;
+import java.io.*;
+import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  *
  * @author USUARIO
  */
 public class UI_Puntos2D extends javax.swing.JFrame {
 
-      LinkedList<Punto2D> listaP; 
-    /**
-     * Creates new form UI
-     */
+      private Map<Integer, Punto2D> puntosMap;
+      private Random random;
+      private static final String ARCHIVO_PUNTOS = "puntos.txt";
+
+
+
     public UI_Puntos2D() {
         initComponents();
-        listaP = new LinkedList<>();
+        puntosMap = new HashMap<>();
+        random = new Random();
+        
     }
 
     /**
@@ -30,6 +39,10 @@ public class UI_Puntos2D extends javax.swing.JFrame {
     private void initComponents() {
 
         canvas1 = new java.awt.Canvas();
+        GuardarArchivo = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        textArea = new javax.swing.JTextArea();
+        LeerArchivo = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -40,76 +53,116 @@ public class UI_Puntos2D extends javax.swing.JFrame {
             }
         });
 
+        GuardarArchivo.setText("jButton1");
+        GuardarArchivo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                GuardarArchivoActionPerformed(evt);
+            }
+        });
+
+        textArea.setColumns(20);
+        textArea.setRows(5);
+        jScrollPane1.setViewportView(textArea);
+
+        LeerArchivo.setText("jButton1");
+        LeerArchivo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                LeerArchivoActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(102, 102, 102)
-                .addComponent(canvas1, javax.swing.GroupLayout.PREFERRED_SIZE, 513, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(102, Short.MAX_VALUE))
+                .addGap(143, 143, 143)
+                .addComponent(GuardarArchivo)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(LeerArchivo)
+                .addGap(230, 230, 230))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(40, 40, 40)
+                .addComponent(canvas1, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(47, 47, 47)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 259, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(61, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(58, 58, 58)
-                .addComponent(canvas1, javax.swing.GroupLayout.PREFERRED_SIZE, 293, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(88, Short.MAX_VALUE))
+                .addGap(54, 54, 54)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(canvas1, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(GuardarArchivo)
+                    .addComponent(LeerArchivo))
+                .addContainerGap(59, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void canvas1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_canvas1MouseClicked
-        double X=evt.getX();
-        double Y=evt.getY();
-        
-        Punto2D punto2D= new Punto2D (X, Y);
-        listaP.add(punto2D);
-        
-        for (Punto2D punto: listaP ) {
-            System.out.println("los puntos son " + punto.toString());
-        }
+        int key = random.nextInt(1000000);
+        Punto2D punto2D = new Punto2D(evt.getX(), evt.getY());
+        puntosMap.put(key, punto2D);
+        System.out.println("Guardado: Key: " + key + " - " + punto2D);
         
     }//GEN-LAST:event_canvas1MouseClicked
+
+    private void GuardarArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GuardarArchivoActionPerformed
+      try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARCHIVO_PUNTOS))) {
+            for (Map.Entry<Integer, Punto2D> entry : puntosMap.entrySet()) {
+                writer.write(entry.getKey() + ":" + entry.getValue().toString() + "\n");
+            }
+            System.out.println("Archivo guardado correctamente.");
+        } catch (IOException e) {
+            System.err.println("Error al guardar el archivo: " + e.getMessage());
+        }
+    }//GEN-LAST:event_GuardarArchivoActionPerformed
+
+    private void LeerArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LeerArchivoActionPerformed
+       puntosMap.clear();
+        textArea.setText("");
+        StringBuilder contenido = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new FileReader(ARCHIVO_PUNTOS))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                contenido.append(line).append("\n");
+                String[] parts = line.split(":");
+                if (parts.length == 2) {
+                    int key = Integer.parseInt(parts[0].trim());
+                    String[] coordinates = parts[1].trim().split(",");
+                    if (coordinates.length == 2) {
+                        puntosMap.put(key, new Punto2D(Double.parseDouble(coordinates[0]), Double.parseDouble(coordinates[1])));
+                    }
+                }
+            }
+            textArea.setText(contenido.toString());
+            textArea.setCaretPosition(0);
+            System.out.println("Mapa construido con los valores leídos:");
+            puntosMap.forEach((k, v) -> System.out.println("Key: " + k + " - " + v));
+        } catch (IOException e) {
+            System.err.println("Error al leer el archivo: " + e.getMessage());
+        }  
+    }//GEN-LAST:event_LeerArchivoActionPerformed
 
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(UI_Puntos2D.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(UI_Puntos2D.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(UI_Puntos2D.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(UI_Puntos2D.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
+      java.awt.EventQueue.invokeLater(() -> new UI_Puntos2D().setVisible(true));
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new UI_Puntos2D().setVisible(true);
-            }
-        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton GuardarArchivo;
+    private javax.swing.JButton LeerArchivo;
     private java.awt.Canvas canvas1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea textArea;
     // End of variables declaration//GEN-END:variables
 }
